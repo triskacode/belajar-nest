@@ -26,7 +26,7 @@ export class UsersController {
   async create(@Body() createUserDto: CreateUserDto) {
     const user = await this.usersService.create(createUserDto);
 
-    return this.usersMapper.mapUserToDto(user);
+    return this.usersMapper.mapEntityToDto(user);
   }
 
   @Get()
@@ -34,7 +34,7 @@ export class UsersController {
   async findAll() {
     const users = await this.usersService.findAll();
 
-    return this.usersMapper.mapUsersToDto(users);
+    return this.usersMapper.mapEntitiesToDto(users);
   }
 
   @Get(':id')
@@ -42,7 +42,7 @@ export class UsersController {
   async findOne(@Param('id') id: string) {
     const user = await this.usersService.findOne(+id);
 
-    return this.usersMapper.mapUserToDto(user);
+    return this.usersMapper.mapEntityToDto(user);
   }
 
   @Patch(':id')
@@ -50,7 +50,7 @@ export class UsersController {
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
     const user = await this.usersService.update(+id, updateUserDto);
 
-    return this.usersMapper.mapUserToDto(user);
+    return this.usersMapper.mapEntityToDto(user);
   }
 
   @Delete(':id')

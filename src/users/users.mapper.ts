@@ -1,10 +1,12 @@
 import { Injectable } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import { CreateUserDto } from './dto/create-user.dto';
 import { UserDto } from './dto/user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
 export class UsersMapper {
-  mapUsersToDto(users: User[]): UserDto[] {
+  mapEntitiesToDto(users: User[]): UserDto[] {
     return users.map((user) => {
       delete user.password;
 
@@ -12,9 +14,18 @@ export class UsersMapper {
     });
   }
 
-  mapUserToDto(user: User): UserDto {
+  mapEntityToDto(user: User): UserDto {
     delete user.password;
 
     return user;
+  }
+
+  async mapCreateUserDto(createUser: CreateUserDto): Promise<CreateUserDto> {
+    const createUserHashed: CreateUserDto = {
+      ...createUser,
+      password: await bcrypt.hash(createUser.password, 10),
+    };
+
+    return createUserHashed;
   }
 }

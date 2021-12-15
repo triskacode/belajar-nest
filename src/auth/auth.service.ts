@@ -21,8 +21,15 @@ export class AuthService {
     try {
       const user = await this.userService.findOneByEmail(email);
 
-      if (user && user.password === password) {
-        return this.userMapper.mapUserToDto(user);
+      if (user) {
+        const isMatchPassword = await this.userService.comparePassword(
+          password,
+          user.password,
+        );
+
+        if (isMatchPassword) {
+          return this.userMapper.mapEntityToDto(user);
+        }
       }
 
       return null;
