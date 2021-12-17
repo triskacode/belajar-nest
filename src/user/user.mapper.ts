@@ -5,7 +5,7 @@ import { UserDto } from './dto/user.dto';
 import { User } from './entities/user.entity';
 
 @Injectable()
-export class UsersMapper {
+export class UserMapper {
   mapEntitiesToDto(users: User[]): UserDto[] {
     return users.map((user) => {
       delete user.password;

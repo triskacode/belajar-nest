@@ -1,18 +1,19 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { Chat } from 'src/chat/entities/chat.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
-import { UsersMapper } from './users.mapper';
-import { UsersRepository } from './users.repository';
+import { UserMapper } from './user.mapper';
+import { UserRepository } from './user.repository';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
-    @InjectRepository(UsersRepository)
-    private readonly usersRepository: UsersRepository,
-    private readonly usersMapper: UsersMapper,
+    @InjectRepository(UserRepository)
+    private readonly userRepository: UserRepository,
+    private readonly userMapper: UserMapper,
   ) {}
 
   async comparePassword(password: string, hash: string): Promise<boolean> {
@@ -22,19 +23,21 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
-    const createUserDtoHashed = await this.usersMapper.mapCreateUserDto(
+    const createUserDtoHashed = await this.userMapper.mapCreateUserDto(
       createUserDto,
     );
 
-    return await this.usersRepository.save<User>(createUserDtoHashed);
+    const user: User = { ...createUserDtoHashed, chat: new Chat() };
+
+    return await this.userRepository.save<User>(user);
   }
 
   async findAll(): Promise<User[]> {
-    return await this.usersRepository.find();
+    return await this.userRepository.find();
   }
 
   async findOneByEmail(email: string): Promise<User> {
-    const user = await this.usersRepository.findOne({ email });
+    const user = await this.userRepository.findOne({ email });
 
     if (!user) throw new NotFoundException('User not found');
 
@@ -42,7 +45,7 @@ export class UsersService {
   }
 
   async findOne(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne(id);
+    const user = await this.userRepository.findOne(id);
 
     if (!user) throw new NotFoundException('User not found');
 
@@ -50,20 +53,20 @@ export class UsersService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.usersRepository.findOne(id);
+    const user = await this.userRepository.findOne(id);
 
     if (!user) throw new NotFoundException('User not found');
 
     user.email = updateUserDto.email ?? user.email;
 
-    return await this.usersRepository.save<User>(user);
+    return await this.userRepository.save<User>(user);
   }
 
   async remove(id: number): Promise<User> {
-    const user = await this.usersRepository.findOne(id);
+    const user = await this.userRepository.findOne(id);
 
     if (!user) throw new NotFoundException('User not found');
 
-    return this.usersRepository.remove(user);
+    return this.userRepository.remove(user);
   }
 }

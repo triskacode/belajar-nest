@@ -9,54 +9,54 @@ import {
   UseGuards,
   HttpCode,
 } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { JwtAuthGuard } from 'src/auth/guards/jwt-auth.guard';
-import { UsersMapper } from './users.mapper';
+import { UserMapper } from './user.mapper';
 
 @Controller('users')
-export class UsersController {
+export class UserController {
   constructor(
-    private readonly usersService: UsersService,
-    private readonly usersMapper: UsersMapper,
+    private readonly userService: UserService,
+    private readonly userMapper: UserMapper,
   ) {}
 
   @Post()
   async create(@Body() createUserDto: CreateUserDto) {
-    const user = await this.usersService.create(createUserDto);
+    const user = await this.userService.create(createUserDto);
 
-    return this.usersMapper.mapEntityToDto(user);
+    return this.userMapper.mapEntityToDto(user);
   }
 
   @Get()
   @UseGuards(JwtAuthGuard)
   async findAll() {
-    const users = await this.usersService.findAll();
+    const users = await this.userService.findAll();
 
-    return this.usersMapper.mapEntitiesToDto(users);
+    return this.userMapper.mapEntitiesToDto(users);
   }
 
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {
-    const user = await this.usersService.findOne(+id);
+    const user = await this.userService.findOne(+id);
 
-    return this.usersMapper.mapEntityToDto(user);
+    return this.userMapper.mapEntityToDto(user);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard)
   async update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    const user = await this.usersService.update(+id, updateUserDto);
+    const user = await this.userService.update(+id, updateUserDto);
 
-    return this.usersMapper.mapEntityToDto(user);
+    return this.userMapper.mapEntityToDto(user);
   }
 
   @Delete(':id')
-  @UseGuards(JwtAuthGuard)
   @HttpCode(204)
+  @UseGuards(JwtAuthGuard)
   async remove(@Param('id') id: string) {
-    await this.usersService.remove(+id);
+    await this.userService.remove(+id);
   }
 }

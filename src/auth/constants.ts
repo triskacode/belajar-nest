@@ -1,3 +1,5 @@
-export const jwtConstants = {
-  secret: 'sample-secret',
+export const authConstants = {
+  jwt: {
+    secret: 'sample-secret',
+  },
 };

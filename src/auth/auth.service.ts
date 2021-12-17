@@ -3,18 +3,18 @@ import {
   NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { UsersService } from 'src/users/users.service';
+import { UserService } from 'src/user/user.service';
 import { JwtService } from '@nestjs/jwt';
-import { User } from 'src/users/entities/user.entity';
+import { User } from 'src/user/entities/user.entity';
 import { AccessTokenDto } from './dto/access-token.dto';
-import { UsersMapper } from 'src/users/users.mapper';
+import { UserMapper } from 'src/user/user.mapper';
 
 @Injectable()
 export class AuthService {
   constructor(
-    private userService: UsersService,
-    private userMapper: UsersMapper,
-    private jwtService: JwtService,
+    private readonly userService: UserService,
+    private readonly userMapper: UserMapper,
+    private readonly jwtService: JwtService,
   ) {}
 
   async validateUser(email: string, password: string) {
