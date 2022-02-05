@@ -8,6 +8,7 @@ import {
 import {
   ConnectedSocket,
   MessageBody,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -20,6 +21,11 @@ import { ChatExceptionsFilter } from './chat-exceptions.filter';
 import { ChatService } from './chat.service';
 import { MessageDto } from './dto/message.dto';
 
+interface MessageEntity {
+  content: string;
+  isOwner: boolean;
+}
+
 @WebSocketGateway({
   cors: true,
   namespace: 'chat',
@@ -27,15 +33,26 @@ import { MessageDto } from './dto/message.dto';
 @UseFilters(ChatExceptionsFilter)
 @UseGuards(JwtWebsocketAuthGuard)
 @UsePipes(new ValidationPipe())
-export class ChatGateway {
+export class ChatGateway implements OnGatewayDisconnect {
   @WebSocketServer() server: Server;
 
   private logger: Logger = new Logger('ChatGateway');
 
   constructor(private readonly chatService: ChatService) {}
 
+  async handleDisconnect(client: Socket) {
+    await this.chatService.disconnectFromServer({ socketId: client.id });
+    const usersOnline = await this.chatService.findUserOnlineInChat();
+
+    client.broadcast.emit('list-user', usersOnline);
+
+    this.logger.log(`Client disconnected: ${client.id}.`);
+  }
+
   @SubscribeMessage('connect-to-server')
-  async handleConnectToServer(@ConnectedSocket() client: Socket) {
+  async handleConnectToServer(
+    @ConnectedSocket() client: Socket,
+  ): Promise<WsResponse<User[]>> {
     const request: typeof client.handshake & { user: User } =
       client.handshake as any;
 
@@ -43,27 +60,31 @@ export class ChatGateway {
       socketId: client.id,
       userId: request.user.id,
     });
+    const usersOnline = await this.chatService.findUserOnlineInChat();
+
+    client.broadcast.emit('list-user', usersOnline);
 
     this.logger.log(`Client connected: ${client.id}.`);
+
+    return {
+      event: 'list-user',
+      data: usersOnline,
+    };
   }
 
-  @SubscribeMessage('disconnect-from-server')
-  async handleDisconnectFromServer(@ConnectedSocket() client: Socket) {
-    const request: typeof client.handshake & { user: User } =
-      client.handshake as any;
-
-    await this.chatService.disconnectFromServer({ userId: request.user.id });
-
-    this.logger.log(`Client disconnected: ${client.id}.`);
-  }
-
-  @SubscribeMessage('message')
+  @SubscribeMessage('message-to-server')
   async handleMessage(
     @MessageBody() messageDto: MessageDto,
     @ConnectedSocket() client: Socket,
-  ): Promise<WsResponse<{ message: string }>> {
-    this.server.except(client.id).emit('message', messageDto);
+  ): Promise<WsResponse<MessageEntity>> {
+    client.broadcast.emit('message-to-client', {
+      ...messageDto,
+      isOwner: false,
+    });
 
-    return { event: 'message', data: { message: messageDto.message } };
+    return {
+      event: 'message-to-client',
+      data: { ...messageDto, isOwner: true },
+    };
   }
 }

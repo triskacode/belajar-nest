@@ -1,5 +1,5 @@
-import { User } from 'src/user/entities/user.entity';
+import { Chat } from '../entities/chat.entity';
 
 export class DisconnectFromServerDto {
-  userId: User['id'];
+  socketId: Chat['socketId'];
 }

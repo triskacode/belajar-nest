@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as moment from 'moment';
 import { UserService } from 'src/user/user.service';
 import { ConnectToServerDto } from './dto/connect-to-server.dto';
@@ -9,13 +8,12 @@ import { ChatRepository } from './repositories/chat.repository';
 @Injectable()
 export class ChatService {
   constructor(
-    @InjectRepository(ChatRepository)
     private readonly chatRepository: ChatRepository,
     private readonly userService: UserService,
   ) {}
 
   async connectToServer(connectToServerDto: ConnectToServerDto) {
-    const user = await this.userService.findOne(connectToServerDto.userId);
+    const user = await this.userService.findOneById(connectToServerDto.userId);
 
     user.chat.socketId = connectToServerDto.socketId;
     user.chat.lastSeen = null;
@@ -23,12 +21,22 @@ export class ChatService {
     await this.chatRepository.save(user.chat);
   }
 
-  async disconnectFromServer(disconnectFromServerDto: DisconnectFromServerDto) {
-    const user = await this.userService.findOne(disconnectFromServerDto.userId);
+  async disconnectFromServer(
+    disconnectFromServerDto: DisconnectFromServerDto,
+  ): Promise<void> {
+    const chat = await this.chatRepository.findOneBySocketId(
+      disconnectFromServerDto.socketId,
+    );
 
-    user.chat.socketId = null;
-    user.chat.lastSeen = moment().format();
+    if (chat) {
+      chat.socketId = null;
+      chat.lastSeen = moment().format();
 
-    await this.chatRepository.save(user.chat);
+      await this.chatRepository.save(chat);
+    }
+  }
+
+  async findUserOnlineInChat() {
+    return await this.userService.findUserOnlineInChat();
   }
 }

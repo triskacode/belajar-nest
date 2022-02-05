@@ -1,5 +1,4 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { Chat } from 'src/chat/entities/chat.entity';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -11,7 +10,6 @@ import { UserRepository } from './user.repository';
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(UserRepository)
     private readonly userRepository: UserRepository,
     private readonly userMapper: UserMapper,
   ) {}
@@ -36,6 +34,26 @@ export class UserService {
     return await this.userRepository.find();
   }
 
+  async findUserOnlineInChat() {
+    return await this.userRepository.findUserOnlineInChat();
+  }
+
+  async findOne(query: Partial<User>): Promise<User> {
+    const user = await this.userRepository.findOne(query);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
+  }
+
+  async findOneById(id: number): Promise<User> {
+    const user = await this.userRepository.findOne(id);
+
+    if (!user) throw new NotFoundException('User not found');
+
+    return user;
+  }
+
   async findOneByEmail(email: string): Promise<User> {
     const user = await this.userRepository.findOne({ email });
 
@@ -44,8 +62,11 @@ export class UserService {
     return user;
   }
 
-  async findOne(id: number): Promise<User> {
-    const user = await this.userRepository.findOne(id);
+  async findOneByEmailWithPassword(email: string): Promise<User> {
+    const user = await this.userRepository.findOne(
+      { email },
+      { select: ['id', 'email', 'password'] },
+    );
 
     if (!user) throw new NotFoundException('User not found');
 

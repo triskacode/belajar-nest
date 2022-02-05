@@ -40,7 +40,7 @@ export class UserController {
   @Get(':id')
   @UseGuards(JwtAuthGuard)
   async findOne(@Param('id') id: string) {
-    const user = await this.userService.findOne(+id);
+    const user = await this.userService.findOneById(+id);
 
     return this.userMapper.mapEntityToDto(user);
   }

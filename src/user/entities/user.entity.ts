@@ -9,7 +9,7 @@ export class User {
   @Column('varchar', { unique: true })
   email: string;
 
-  @Column('varchar')
+  @Column('varchar', { select: false })
   password: string;
 
   @OneToOne(() => Chat, (chat) => chat.user, { cascade: true, eager: true })
