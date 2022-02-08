@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { Chat } from 'src/chat/entities/chat.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -25,9 +24,7 @@ export class UserService {
       createUserDto,
     );
 
-    const user: User = { ...createUserDtoHashed, chat: new Chat() };
-
-    return await this.userRepository.save<User>(user);
+    return await this.userRepository.save<User>(createUserDtoHashed);
   }
 
   async findAll(): Promise<User[]> {
@@ -74,9 +71,7 @@ export class UserService {
   }
 
   async update(id: number, updateUserDto: UpdateUserDto) {
-    const user = await this.userRepository.findOne(id);
-
-    if (!user) throw new NotFoundException('User not found');
+    const user = await this.userRepository.findOneOrFail(id);
 
     user.email = updateUserDto.email ?? user.email;
 
@@ -84,9 +79,7 @@ export class UserService {
   }
 
   async remove(id: number): Promise<User> {
-    const user = await this.userRepository.findOne(id);
-
-    if (!user) throw new NotFoundException('User not found');
+    const user = await this.userRepository.findOneOrFail(id);
 
     return this.userRepository.remove(user);
   }

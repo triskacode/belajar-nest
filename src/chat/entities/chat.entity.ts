@@ -24,5 +24,5 @@ export class Chat {
 
   @OneToOne(() => User, (user) => user.chat, { onDelete: 'CASCADE' })
   @JoinColumn()
-  user: User;
+  user?: User;
 }
