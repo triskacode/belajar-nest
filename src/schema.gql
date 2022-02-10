@@ -37,5 +37,6 @@ input CreatePostInput {
 input UpdatePostInput {
   title: String
   content: String
+  userId: Int
   id: Int!
 }

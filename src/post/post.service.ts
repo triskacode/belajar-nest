@@ -25,6 +25,7 @@ export class PostService {
 
     post.title = updatePostInput.title ?? post.title;
     post.content = updatePostInput.content ?? post.content;
+    post.userId = updatePostInput.userId ?? post.userId;
 
     return await this.postRepository.save<Post>(post);
   }
